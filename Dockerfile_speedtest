@@ -1,28 +1,12 @@
-FROM alpine:latest
+FROM python:3.7.4-alpine3.10
 ADD script.py /root/script.py
 RUN chmod 0644 /root/script.py
 
-RUN apk add --no-cache --update \
-    git \
-    bash \
-    libffi-dev \
-    openssl-dev \
-    bzip2-dev \
-    zlib-dev \
-    readline-dev \
-    sqlite-dev \
-    build-base \
-    linux-headers
+ADD requirements.txt /root/requirements.txt
+RUN pip install -r /root/requirements.txt
 
-ARG PYTHON_VERSION='3.7.16'
-ARG PYENV_HOME=/root/.pyenv
-RUN git clone --depth 1 https://github.com/pyenv/pyenv.git $PYENV_HOME && \
-rm -rfv $PYENV_HOME/.git
+ADD crontab /etc/cron.d/speedtest-cron
+RUN chmod 0644 /etc/cron.d/speedtest-cron
+RUN crontab /etc/cron.d/speedtest-cron
 
-ENV PATH $PYENV_HOME/shims:$PYENV_HOME/bin:$PATH
-
-RUN pyenv install $PYTHON_VERSION
-RUN pyenv global $PYTHON_VERSION
-RUN pip install --upgrade pip && pyenv rehash
-
-RUN pip install speedtest-cli mysql-connector
+ENTRYPOINT [ "crond", "-f" ]

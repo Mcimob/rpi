@@ -1,0 +1,11 @@
+apiVersion: 1
+
+datasources:
+  - name: Speedtest MySQL
+    type: mysql
+    access: direct
+    url: db
+    user: root
+    secureJsonData:
+      password: "password"
+    database: data

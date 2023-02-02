@@ -1,6 +1,6 @@
-version: '3'
 services:
-  db: 
+  db:
+    container_name: db 
     image: mysql:8.0
     cap_add:
       - SYS_NICE
@@ -8,14 +8,41 @@ services:
     environment:
       - MYSQL_DATABASE=data
       - MYSQL_ROOT_PASSWORD=password
-    ports:
-      - '3306:3306'
     volumes:
       - db:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-ppass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   speedtest:
-    
+    container_name: speedtest
+    build:
+      context: .
+      dockerfile: Dockerfile_speedtest
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    ports: 
+      - '3000:3000'
+    restart: unless-stopped
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
 
 volumes:
   db:
+    driver: local
+  grafana-data:
     driver: local
