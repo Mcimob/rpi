@@ -20,7 +20,7 @@ services:
   speedtest:
     container_name: speedtest
     build:
-      context: .
+      context: ./speedtest
       dockerfile: Dockerfile_speedtest
     depends_on:
       db:
